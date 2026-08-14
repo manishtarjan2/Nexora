@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Bell, Menu } from 'lucide-react';
+import { Search, Bell, Menu, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
