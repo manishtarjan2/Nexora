@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  createdAt DateTime @default(now())
+  
+  videos    Video[]
+}
+
+model Video {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  url         String   // HLS master playlist URL
+  type        String   @default("LONG") // "SHORT" or "LONG"
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+}
