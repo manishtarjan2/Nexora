@@ -69,7 +69,7 @@ export default function ShortsSwiper() {
     <div 
       ref={containerRef}
       onScroll={handleScroll}
-      className="h-[calc(100vh-64px)] w-full max-w-md mx-auto snap-y snap-mandatory overflow-y-auto overflow-x-hidden scrollbar-hide bg-black relative rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(236,72,153,0.1)] my-4"
+      className="h-[calc(100vh-64px-64px)] md:h-[calc(100vh-64px)] w-full max-w-full md:max-w-md mx-auto snap-y snap-mandatory overflow-y-auto overflow-x-hidden scrollbar-hide bg-black relative md:rounded-3xl border-none md:border md:border-white/10 md:shadow-[0_0_50px_rgba(236,72,153,0.1)] md:my-4"
     >
       {shorts.map((short, index) => {
         // Sliding window logic:

@@ -1,16 +1,37 @@
 'use client';
 
 import React from 'react';
-import { Search, Bell, ChevronDown } from 'lucide-react';
+import { Search, Bell, Menu } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-40 bg-[#0A0B10] w-full py-4 px-6 flex items-center gap-6">
+    <header className="sticky top-0 z-40 bg-[#0A0B10]/95 backdrop-blur-md w-full py-4 px-4 md:px-6 flex items-center justify-between gap-4">
+      
+      {/* Mobile Logo & Menu (Hidden on md+) */}
+      <div className="md:hidden flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-6 h-6">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M7 6L21 26H25L11 6H7Z" fill="url(#header_grad)" />
+              <path d="M7 26V6H11V26H7Z" fill="#8B5CF6" />
+              <path d="M21 26V6H25V26H21Z" fill="#EC4899" />
+              <defs>
+                <linearGradient id="header_grad" x1="16" y1="6" x2="16" y2="26" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#6366F1" />
+                  <stop offset="1" stopColor="#EC4899" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span className="text-base font-bold tracking-[0.15em] text-white">NEXORA</span>
+        </Link>
+      </div>
 
       {/* Centered Search Bar */}
-      <div className="flex-1 flex justify-center">
-        <div className="relative w-full max-w-[560px]">
+      <div className="flex-1 flex justify-end md:justify-center max-w-[560px] ml-auto">
+        <div className="relative w-full max-w-[560px] hidden md:block">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-500" />
           <input
             type="text"
@@ -21,8 +42,11 @@ export default function Header() {
             <Search className="w-4 h-4 text-gray-400" />
           </button>
         </div>
+        {/* Mobile Search Icon */}
+        <button className="md:hidden w-10 h-10 rounded-full bg-white/[0.04] flex items-center justify-center text-gray-400">
+          <Search className="w-5 h-5" />
+        </button>
       </div>
-
       {/* Right Actions */}
       <div className="flex items-center gap-4">
         {/* Create Button */}
