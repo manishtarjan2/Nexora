@@ -102,19 +102,33 @@ export default function ShortsSwiper() {
                   If isPrefetched -> fetch manifest via XHR but don't attach media source yet
                 */}
                 
-                {/* Mock Video Element */}
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black flex flex-col items-center justify-center">
-                  <motion.div
-                    animate={isPlaying ? { scale: [1, 1.05, 1] } : {}}
-                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                    className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-pink-500 via-transparent to-transparent"
-                  />
-                  <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500 opacity-20">
-                    {short.id}
-                  </span>
+                {/* Actual Video Player */}
+                <div className="absolute inset-0 bg-black flex flex-col items-center justify-center">
+                  {short.url.endsWith('.mp4') ? (
+                    <video
+                      src={short.url}
+                      className="w-full h-full object-cover"
+                      loop
+                      muted={!isPlaying}
+                      autoPlay={isPlaying}
+                      playsInline
+                    />
+                  ) : (
+                    // Fallback for m3u8 mock urls
+                    <>
+                      <motion.div
+                        animate={isPlaying ? { scale: [1, 1.05, 1] } : {}}
+                        transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                        className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-pink-500 via-transparent to-transparent"
+                      />
+                      <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500 opacity-20">
+                        {short.id}
+                      </span>
+                    </>
+                  )}
                   
                   {/* Developer Overlay */}
-                  <div className="absolute top-4 left-4 flex flex-col items-start gap-2">
+                  <div className="absolute top-4 left-4 flex flex-col items-start gap-2 z-20">
                     <span className={`px-2 py-1 rounded text-[10px] font-mono font-bold tracking-wider ${isPlaying ? "bg-green-500/20 text-green-400 border border-green-500/50" : isBuffered ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50" : "bg-blue-500/20 text-blue-400 border border-blue-500/50"}`}>
                       {isPlaying ? "▶ PLAYING" : isBuffered ? "⏳ BUFFERED" : "⬇ PREFETCHED"}
                     </span>

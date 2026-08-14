@@ -87,10 +87,18 @@ app.get('/api/feed/shorts', async (req, res) => {
   }
 
   // Fallback Mock Data
-  const mockShorts = [];
-  for (let i = 1; i <= 5; i++) {
+  const mockShorts = [
+    {
+      id: "insta_1",
+      title: "Instagram Reel",
+      url: "/shorts/insta.mp4",
+      author: "instagram_creator",
+      likes: 45600,
+    }
+  ];
+  for (let i = 1; i <= 4; i++) {
     mockShorts.push({
-      id: i,
+      id: i.toString(),
       title: `Short Video ${i} (Node.js MVP)`,
       url: `https://cdn.nexora.app/shorts/${i}_master.m3u8`,
       author: `creator_${i}`,
