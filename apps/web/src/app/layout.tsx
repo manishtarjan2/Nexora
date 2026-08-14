@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
-      <body className="min-h-full flex font-[family-name:var(--font-inter)] text-white bg-[#0A0B10]">
+    <html lang="en" className={`${inter.variable} h-full antialiased dark overflow-x-hidden`}>
+      <body className="min-h-full flex font-[family-name:var(--font-inter)] text-white bg-[#0A0B10] overflow-x-hidden">
         <Sidebar />
         <main className="flex-1 overflow-y-auto flex flex-col min-h-[100dvh] pb-16 md:pb-0">
           <Header />
