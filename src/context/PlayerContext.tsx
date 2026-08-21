@@ -11,6 +11,7 @@ export interface VideoMeta {
   url: string;
   isLocal: boolean;
   views?: number;
+  description?: string;
 }
 
 interface PlayerContextType {

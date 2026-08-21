@@ -63,6 +63,7 @@ export default function WatchPage() {
           url: json.data.url,
           isLocal: json.data.isLocal,
           views: json.data.views,
+          description: json.data.description,
         };
         
         setActiveVideo(videoData);
