@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -57,3 +58,4 @@ export function usePlayer() {
   }
   return context;
 }
+

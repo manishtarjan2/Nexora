@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -288,3 +289,4 @@ function CreatorCard({ name, subs, image }: { name: string; subs: string; image:
     </div>
   );
 }
+

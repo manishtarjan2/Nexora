@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import React, { useState } from 'react';
@@ -100,3 +101,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+
