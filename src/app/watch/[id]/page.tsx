@@ -7,6 +7,8 @@ import { ArrowLeft, ThumbsUp, MessageSquare, Share2, MoreHorizontal } from 'luci
 import Image from 'next/image';
 import { usePlayer, VideoMeta } from '@/context/PlayerContext';
 
+import { motion } from 'framer-motion';
+
 export default function WatchPage() {
   const params = useParams();
   const id = params.id as string;
@@ -19,13 +21,15 @@ export default function WatchPage() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(true);
 
   useEffect(() => {
+    if (!id) return;
     const fetchSuggestions = async () => {
+      setLoadingSuggestions(true);
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
-        const res = await fetch(`${API_URL}/api/videos/home`);
+        const res = await fetch(`${API_URL}/api/videos/${id}/related`);
         if (res.ok) {
           const json = await res.json();
-          setSuggestions(json.data.trending || []);
+          setSuggestions(json.data || []);
         }
       } catch (err) {
         console.error('Failed to fetch suggestions:', err);
@@ -34,7 +38,7 @@ export default function WatchPage() {
       }
     };
     fetchSuggestions();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     // If the active video is already the one we want, just maximize it.
@@ -93,6 +97,19 @@ export default function WatchPage() {
 
   // We know activeVideo is present here.
   const video = activeVideo!;
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+  };
 
   return (
     <div className="w-full min-h-[100dvh] bg-[#0A0B10] text-white flex flex-col lg:flex-row">
@@ -182,36 +199,39 @@ export default function WatchPage() {
                </div>
              ))
           ) : suggestions.length > 0 ? (
-            suggestions.map((suggestion: any, i: number) => (
-              <div 
-                key={`${suggestion.id}-${i}`} 
-                onClick={() => router.push(`/watch/${suggestion.id}`)}
-                className="flex gap-3 cursor-pointer group"
-              >
-                <div className="w-[160px] h-[90px] rounded-lg bg-[#14151D] flex-shrink-0 relative overflow-hidden group-hover:ring-2 ring-purple-500/50 transition-all shadow-lg border border-white/[0.04]">
-                  {suggestion.image && (
-                    <Image 
-                      src={suggestion.image.replace('w=320', 'w=720').replace('w=600', 'w=720')} 
-                      alt={suggestion.title} 
-                      fill 
-                      className="object-cover" 
-                      sizes="160px"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold text-white">
-                    {Math.floor(Math.random() * 10) + 1}:{(Math.floor(Math.random() * 50) + 10).toString().padStart(2, '0')}
+            <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-3">
+              {suggestions.map((suggestion: any, i: number) => (
+                <motion.div 
+                  key={`${suggestion.id}-${i}`} 
+                  variants={itemVariants}
+                  onClick={() => router.push(`/watch/${suggestion.id}`)}
+                  className="flex gap-3 cursor-pointer group"
+                >
+                  <div className="w-[160px] h-[90px] rounded-lg bg-[#14151D] flex-shrink-0 relative overflow-hidden group-hover:ring-2 ring-purple-500/50 transition-all shadow-lg border border-white/[0.04]">
+                    {suggestion.image && (
+                      <Image 
+                        src={suggestion.image.replace('w=320', 'w=720').replace('w=600', 'w=720')} 
+                        alt={suggestion.title} 
+                        fill 
+                        className="object-cover" 
+                        sizes="160px"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold text-white">
+                      {Math.floor(Math.random() * 10) + 1}:{(Math.floor(Math.random() * 50) + 10).toString().padStart(2, '0')}
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col gap-1 py-0.5 min-w-0">
-                  <h4 className="text-[14px] font-semibold leading-tight line-clamp-2 group-hover:text-purple-300 transition-colors text-gray-100">
-                    {suggestion.title}
-                  </h4>
-                  <span className="text-[12px] text-gray-400 mt-0.5 truncate">{suggestion.genre || 'Creator'}</span>
-                  <span className="text-[11px] text-gray-500">{Math.floor(Math.random() * 900) + 10}K views • {Math.floor(Math.random() * 5) + 1} days ago</span>
-                </div>
-              </div>
-            ))
+                  <div className="flex flex-col gap-1 py-0.5 min-w-0">
+                    <h4 className="text-[14px] font-semibold leading-tight line-clamp-2 group-hover:text-purple-300 transition-colors text-gray-100">
+                      {suggestion.title}
+                    </h4>
+                    <span className="text-[12px] text-gray-400 mt-0.5 truncate">{suggestion.genre || 'Creator'}</span>
+                    <span className="text-[11px] text-gray-500">{Math.floor(Math.random() * 900) + 10}K views • {Math.floor(Math.random() * 5) + 1} days ago</span>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           ) : (
             <div className="text-gray-400 text-sm">No suggestions available.</div>
           )}

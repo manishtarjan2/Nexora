@@ -57,12 +57,31 @@ function SearchResults() {
       ) : results.length === 0 ? (
         <div className="text-gray-400 mt-10">No videos found matching your query.</div>
       ) : (
-        <div className="flex flex-wrap gap-4">
+        <motion.div 
+          className="flex flex-wrap gap-4"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.05 }
+            }
+          }}
+          initial="hidden"
+          animate="show"
+        >
           {results.map((item) => (
             <Link key={item.id} href={`/watch/${item.id}`}>
-              <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="min-w-[185px] w-[185px] flex flex-col gap-2 group cursor-pointer">
+              <motion.div 
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+                }}
+                whileHover={{ y: -4 }} 
+                transition={{ duration: 0.2 }} 
+                className="min-w-[185px] w-[185px] flex flex-col gap-2 group cursor-pointer"
+              >
                 <div className="relative aspect-[3/4] rounded-xl bg-[#14151D] border border-white/[0.04] overflow-hidden shadow-lg">
-                  {item.image && <Image src={item.image} alt={item.title} fill className="object-cover" sizes="185px" />}
+                  {item.image && <Image src={item.image.replace('w=600', 'w=720')} alt={item.title} fill className="object-cover" sizes="185px" />}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className={`absolute top-2.5 right-2.5 ${item.badgeColor || 'bg-blue-600'} text-white text-[9px] font-black px-1.5 py-[3px] rounded-[4px] uppercase leading-none tracking-wide`}>
                     {item.badge}
@@ -80,7 +99,7 @@ function SearchResults() {
               </motion.div>
             </Link>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

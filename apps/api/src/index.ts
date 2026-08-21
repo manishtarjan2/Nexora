@@ -243,14 +243,14 @@ app.get('/api/videos/search', async (req, res) => {
     // 1. Try local DB
     const dbResults = await prisma.video.findMany({
       where: { title: { contains: query, mode: 'insensitive' } },
-      take: 10,
+      take: 25,
       include: { author: true }
     });
     if (dbResults.length > 0) {
       results = dbResults.map(item => ({
         id: item.id,
         title: item.title,
-        genre: item.author.username || "Creator",
+        genre: item.author?.username || "Creator",
         badge: "LOCAL",
         badgeColor: "bg-green-600",
         image: item.thumbnailUrl || "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80"
@@ -264,7 +264,7 @@ app.get('/api/videos/search', async (req, res) => {
   if (results.length === 0) {
     try {
       const searchResults = await ytSearch(query);
-      results = searchResults.videos.slice(0, 10).map(item => ({
+      results = searchResults.videos.slice(0, 25).map(item => ({
         id: item.videoId,
         title: item.title,
         genre: item.author?.name || "YouTube",
@@ -278,6 +278,59 @@ app.get('/api/videos/search', async (req, res) => {
   }
 
   res.json({ data: results });
+});
+
+// Related Videos Endpoint
+app.get('/api/videos/:id/related', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const data = await getCachedOrFetch(`related_${id}`, async () => {
+      let results: any[] = [];
+      // If local DB ID
+      if (id.length > 20 && id.includes('-')) {
+        const dbResults = await prisma.video.findMany({
+          where: { type: 'LONG', NOT: { id } },
+          take: 12,
+          orderBy: { views: 'desc' },
+          include: { author: true }
+        });
+        results = dbResults.map((item) => ({
+          id: item.id,
+          title: item.title,
+          genre: item.author?.username || "Creator",
+          badge: "LOCAL", 
+          badgeColor: "bg-green-600", 
+          image: item.thumbnailUrl || "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80"
+        }));
+      }
+      
+      // Fallback to youtube for YouTube IDs
+      if (results.length === 0) {
+        let searchQuery = 'trending movies 2024';
+        try {
+           const ytVideo = await ytSearch({ videoId: id });
+           if (ytVideo && ytVideo.title) {
+              searchQuery = ytVideo.title.split(' ').slice(0, 3).join(' '); // Use first 3 words of video title for related
+           }
+        } catch(e) {}
+        
+        const searchResults = await ytSearch(searchQuery);
+        // exclude the current video if it appears in search
+        results = searchResults.videos.filter(v => v.videoId !== id).slice(0, 12).map((item) => ({
+          id: item.videoId,
+          title: item.title,
+          genre: item.author?.name || "YouTube",
+          badge: "YOUTUBE", 
+          badgeColor: "bg-red-600", 
+          image: item.thumbnail || "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80"
+        }));
+      }
+      return results;
+    });
+    res.json({ data });
+  } catch (err) {
+    res.json({ data: [] });
+  }
 });
 
 // Video Details Endpoint
