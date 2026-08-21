@@ -12,21 +12,39 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFeed = async () => {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
-        const response = await fetch(`${API_URL}/api/videos/home`);
-        if (response.ok) {
-          const json = await response.json();
-          setData(json.data);
-        }
+        
+        // Use a mock anonymous history for personalization MVP
+        const mockHistory = ["RIBXvLvRAVE", "agMZc3TsOBM"];
+        
+        // 1. Fetch generic home feed (continue watching, creators)
+        const homeRes = await fetch(`${API_URL}/api/videos/home`);
+        const homeJson = await homeRes.json();
+        const homeData = homeJson.data || {};
+        
+        // 2. Fetch personalized recommendations
+        const recRes = await fetch(`${API_URL}/api/videos/recommended`, {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ history: mockHistory, limit: 6 })
+        });
+        const recJson = await recRes.json();
+        
+        // Combine them
+        setData({
+          trending: recJson.data || homeData.trending || [],
+          continueWatching: homeData.continueWatching || [],
+          creators: homeData.creators || []
+        });
       } catch (err) {
-        console.error('Failed to fetch premium home feed:', err);
+        console.error('Failed to fetch feed:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    fetchFeed();
   }, []);
 
   const [activeCategory, setActiveCategory] = useState(0);

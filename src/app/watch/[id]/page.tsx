@@ -29,7 +29,12 @@ export default function WatchPage() {
       setLoadingSuggestions(true);
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
-        const res = await fetch(`${API_URL}/api/videos/${id}/related`);
+        // Call the AI Recommendation endpoint with the current video as history
+        const res = await fetch(`${API_URL}/api/videos/recommended`, {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ history: [id], limit: 8 })
+        });
         if (res.ok) {
           const json = await res.json();
           setSuggestions(json.data || []);

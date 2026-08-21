@@ -204,6 +204,70 @@ async function getCachedOrFetch(key: string, fetchFn: () => Promise<any>): Promi
   }
 }
 
+// Recommendation Endpoint (Proxy to AI Service)
+app.post('/api/videos/recommended', async (req, res) => {
+  const { history = [], limit = 10 } = req.body;
+  try {
+    // Call the Python AI service
+    const aiResponse = await fetch('http://localhost:8000/api/recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_history_video_ids: history, limit })
+    });
+    
+    if (!aiResponse.ok) throw new Error('AI Service failed');
+    
+    const aiData = await aiResponse.json();
+    const rankedVideos = aiData.recommendations || [];
+    
+    // Fetch full video details from Postgres for the returned IDs
+    const videoIds = rankedVideos.map((r: any) => r.video_id);
+    
+    let dbVideos: any[] = [];
+    if (videoIds.length > 0) {
+      dbVideos = await prisma.video.findMany({
+        where: { id: { in: videoIds } },
+        include: { author: true }
+      });
+    }
+    
+    // Format and preserve ranking order
+    const formattedResults = [];
+    for (const rank of rankedVideos) {
+      const v = dbVideos.find(db => db.id === rank.video_id);
+      if (v) {
+        formattedResults.push({
+          id: v.id,
+          title: v.title,
+          genre: v.author?.username || "Creator",
+          badge: "RECOMMENDED",
+          badgeColor: "bg-purple-600",
+          image: v.thumbnailUrl || "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80",
+          aiScore: rank.score
+        });
+      }
+    }
+    
+    // If we didn't get enough from the AI or DB, pad with fallbacks
+    if (formattedResults.length < limit) {
+      const remaining = limit - formattedResults.length;
+      const fallbacks = fallbackVideos.slice(0, remaining).map(f => ({
+         ...f, badge: "RECOMMENDED", badgeColor: "bg-purple-600"
+      }));
+      formattedResults.push(...fallbacks);
+    }
+    
+    res.json({ data: formattedResults });
+  } catch (error) {
+    console.warn("Recommendation engine failed, returning fallback trending", error);
+    // Fallback if Python service is down
+    const fallbacks = fallbackVideos.slice(0, limit).map(f => ({
+       ...f, badge: "TRENDING", badgeColor: "bg-blue-600"
+    }));
+    res.json({ data: fallbacks });
+  }
+});
+
 // Home Page Premium Feed
 app.get('/api/videos/home', async (req, res) => {
   try {

@@ -12,13 +12,11 @@ def health_check():
 @app.route("/api/recommendations", methods=["POST"])
 def get_recommendations():
     data = request.json or {}
-    user_id = data.get("user_id")
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+    user_history_video_ids = data.get("user_history_video_ids", [])
         
     limit = data.get("limit", 10)
-    ranked_videos = recommender.rank_feed(user_id=user_id, limit=limit)
-    return jsonify({"user_id": user_id, "recommendations": ranked_videos})
+    ranked_videos = recommender.rank_feed(user_history_video_ids=user_history_video_ids, limit=limit)
+    return jsonify({"recommendations": ranked_videos})
 
 @app.route("/api/search", methods=["POST"])
 def semantic_search():
