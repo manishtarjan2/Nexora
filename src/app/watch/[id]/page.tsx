@@ -15,6 +15,26 @@ export default function WatchPage() {
   
   const [loading, setLoading] = useState(!activeVideo || activeVideo.id !== id);
   const [error, setError] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(true);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        const res = await fetch(`${API_URL}/api/videos/home`);
+        if (res.ok) {
+          const json = await res.json();
+          setSuggestions(json.data.trending || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch suggestions:', err);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    };
+    fetchSuggestions();
+  }, []);
 
   useEffect(() => {
     // If the active video is already the one we want, just maximize it.
@@ -149,23 +169,52 @@ export default function WatchPage() {
         
         {/* Placeholder for related videos */}
         <div className="flex flex-col gap-3">
-          {[1,2,3,4,5,6].map((i) => (
-            <div key={i} className="flex gap-3 cursor-pointer group">
-              <div className="w-[160px] h-[90px] rounded-lg bg-[#14151D] flex-shrink-0 relative overflow-hidden group-hover:ring-2 ring-purple-500/50 transition-all">
-                <Image src={`https://images.unsplash.com/photo-${1618519764620 + i}?w=320&q=80`} alt="Thumbnail" fill className="object-cover" />
-                <div className="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-[10px] font-bold">
-                  12:34
+          {loadingSuggestions ? (
+             Array.from({ length: 6 }).map((_, i) => (
+               <div key={i} className="flex gap-3 animate-pulse">
+                 <div className="w-[160px] h-[90px] rounded-lg bg-white/[0.04] flex-shrink-0 relative overflow-hidden">
+                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+                 </div>
+                 <div className="flex flex-col gap-2 py-0.5 flex-1">
+                   <div className="h-4 bg-white/[0.06] rounded w-full" />
+                   <div className="h-3 bg-white/[0.04] rounded w-2/3 mt-1" />
+                 </div>
+               </div>
+             ))
+          ) : suggestions.length > 0 ? (
+            suggestions.map((suggestion: any, i: number) => (
+              <div 
+                key={`${suggestion.id}-${i}`} 
+                onClick={() => router.push(`/watch/${suggestion.id}`)}
+                className="flex gap-3 cursor-pointer group"
+              >
+                <div className="w-[160px] h-[90px] rounded-lg bg-[#14151D] flex-shrink-0 relative overflow-hidden group-hover:ring-2 ring-purple-500/50 transition-all shadow-lg border border-white/[0.04]">
+                  {suggestion.image && (
+                    <Image 
+                      src={suggestion.image.replace('w=320', 'w=720').replace('w=600', 'w=720')} 
+                      alt={suggestion.title} 
+                      fill 
+                      className="object-cover" 
+                      sizes="160px"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold text-white">
+                    {Math.floor(Math.random() * 10) + 1}:{(Math.floor(Math.random() * 50) + 10).toString().padStart(2, '0')}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1 py-0.5 min-w-0">
+                  <h4 className="text-[14px] font-semibold leading-tight line-clamp-2 group-hover:text-purple-300 transition-colors text-gray-100">
+                    {suggestion.title}
+                  </h4>
+                  <span className="text-[12px] text-gray-400 mt-0.5 truncate">{suggestion.genre || 'Creator'}</span>
+                  <span className="text-[11px] text-gray-500">{Math.floor(Math.random() * 900) + 10}K views • {Math.floor(Math.random() * 5) + 1} days ago</span>
                 </div>
               </div>
-              <div className="flex flex-col gap-1 py-0.5">
-                <h4 className="text-[14px] font-semibold leading-tight line-clamp-2 group-hover:text-purple-300 transition-colors">
-                  Next amazing video you should watch {i}
-                </h4>
-                <span className="text-[12px] text-gray-400 mt-0.5">Awesome Creator</span>
-                <span className="text-[11px] text-gray-500">450K views • 2 days ago</span>
-              </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="text-gray-400 text-sm">No suggestions available.</div>
+          )}
         </div>
       </div>
     </div>
