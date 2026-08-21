@@ -37,6 +37,11 @@ export default function Header() {
             type="text"
             placeholder="Search for movies, shows, creators..."
             className="w-full bg-[#14151D] border border-white/[0.06] rounded-full py-[10px] pl-11 pr-12 text-[13px] focus:outline-none focus:border-purple-500/40 transition-all text-white placeholder-gray-500"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.currentTarget.value.trim() !== '') {
+                window.location.href = `/search?q=${encodeURIComponent(e.currentTarget.value.trim())}`;
+              }
+            }}
           />
           <button className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/10 transition-colors flex items-center justify-center">
             <Search className="w-4 h-4 text-gray-400" />

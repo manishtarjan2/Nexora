@@ -5,6 +5,8 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import dotenv from 'dotenv';
+import { google } from 'googleapis';
+import ytSearch from 'yt-search';
 
 dotenv.config();
 
@@ -63,27 +65,51 @@ app.get('/api/videos/upload-url', async (req, res) => {
 // Shorts Feed MVP
 app.get('/api/feed/shorts', async (req, res) => {
   try {
-    const shorts = await prisma.video.findMany({
+    // 1. Try fetching from local database first
+    const dbShorts = await prisma.video.findMany({
       where: { type: 'SHORT' },
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: { author: true }
     });
 
-    if (shorts.length > 0) {
+    if (dbShorts.length > 0) {
       return res.json({
-        data: shorts.map(s => ({
+        data: dbShorts.map(s => ({
           id: s.id,
           title: s.title,
           url: s.url,
           author: s.author.username,
-          likes: s.views, // Mocking likes as views for now
+          likes: s.views, // Mocking likes as views
         })),
         next_cursor: "encoded_cursor_string_here",
       });
     }
   } catch (error) {
-    console.warn("DB connection failed or empty, falling back to mock Shorts");
+    console.warn("DB query for Shorts failed, falling back to YouTube", error);
+  }
+
+  // 2. Fall back to YouTube via yt-search
+  try {
+    const searchResults = await ytSearch('youtube shorts');
+    const videos = searchResults.videos.slice(0, 5);
+
+    const formattedShorts = videos.map((item, index) => ({
+      id: item.videoId || `short_${index}`,
+      title: item.title || 'YouTube Short',
+      url: `https://www.youtube.com/embed/${item.videoId}`,
+      author: item.author?.name || 'Unknown Creator',
+      likes: item.views || Math.floor(Math.random() * 100000),
+    }));
+
+    if (formattedShorts.length > 0) {
+      return res.json({
+        data: formattedShorts,
+        next_cursor: "encoded_cursor_string_here",
+      });
+    }
+  } catch (error) {
+    console.warn("ytSearch failed for Shorts, falling back to mock", error);
   }
 
   // Fallback Mock Data
@@ -112,52 +138,221 @@ app.get('/api/feed/shorts', async (req, res) => {
   });
 });
 
+// Simple in-memory cache for ultra-fast, reliable responses
+const cache = new Map<string, { data: any, timestamp: number }>();
+const CACHE_TTL = 1000 * 60 * 15; // 15 minutes
+
+async function getCachedOrFetch(key: string, fetchFn: () => Promise<any>): Promise<any> {
+  const cached = cache.get(key);
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    return cached.data;
+  }
+  
+  try {
+    const data = await fetchFn();
+    cache.set(key, { data, timestamp: Date.now() });
+    return data;
+  } catch (error) {
+    if (cached) {
+      console.warn(`Fetch failed for ${key}, returning stale cache.`);
+      return cached.data; // Serve stale cache if fetch fails (increases reliability)
+    }
+    throw error;
+  }
+}
+
 // Home Page Premium Feed
 app.get('/api/videos/home', async (req, res) => {
-  // We'll return structured data for the premium UI
-  const trending = [
-    { id: 1, title: "Kalki 2898 AD", genre: "Sci-Fi • 2024", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80" },
-    { id: 2, title: "Mirzapur S3", genre: "Crime • Thriller", badge: "NEW EPISODES", badgeColor: "bg-red-600", image: "https://images.unsplash.com/photo-1599839619722-39751411ea63?w=600&q=80" },
-    { id: 3, title: "A Dead Silence", genre: "Horror • 2024", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1505635552518-3448ff116af3?w=600&q=80" },
-    { id: 4, title: "The Last Orbit", genre: "Sci-Fi • 2024", badge: "NEW", badgeColor: "bg-pink-600", image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80" },
-    { id: 5, title: "Colors of India", genre: "Documentary", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=80" },
-    { id: 6, title: "Chasing Dreams", genre: "Drama • 2024", badge: "NEW EPISODES", badgeColor: "bg-red-600", image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&q=80" }
-  ];
+  try {
+    const data = await getCachedOrFetch('home_feed', async () => {
+      let trending: any[] = [];
+      let dbTrending: any[] = [];
+      
+      try {
+        dbTrending = await prisma.video.findMany({
+          where: { type: 'LONG' },
+          take: 6,
+          orderBy: { views: 'desc' },
+          include: { author: true }
+        });
+      } catch (err) {
+        console.warn("DB query for Trending failed", err);
+      }
 
-  const continueWatching = [
-    { id: 101, title: "Interstellar", time: "2h 49m left", progress: 30, image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&q=80" },
-    { id: 102, title: "Money Heist S1 E5", time: "24m left", progress: 75, image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=600&q=80" },
-    { id: 103, title: "The Dark Knight", time: "1h 32m left", progress: 45, image: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=600&q=80" },
-    { id: 104, title: "Inception", time: "1h 14m left", progress: 60, image: "https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600&q=80" },
-    { id: 105, title: "Game of Thrones S1 E3", time: "18m left", progress: 90, image: "https://images.unsplash.com/photo-1599839619722-39751411ea63?w=600&q=80" }
-  ];
+      if (dbTrending.length >= 6) {
+        trending = dbTrending.map((item) => ({
+          id: item.id,
+          title: item.title,
+          genre: item.author.username || "Creator",
+          badge: "LOCAL", 
+          badgeColor: "bg-green-600", 
+          image: item.thumbnailUrl || "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80"
+        }));
+      } else {
+        // Fall back to YouTube via yt-search
+        const searchResults = await ytSearch('trending movies and series 2024');
+        const videos = searchResults.videos.slice(0, 6);
 
-  const creators = [
-    { id: 201, name: "CarryMinati", subs: "32.4M Subscribers", image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80" },
-    { id: 202, name: "Tech Burner", subs: "11.2M Subscribers", image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&q=80" },
-    { id: 203, name: "BB Ki Vines", subs: "19M Subscribers", image: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&q=80" },
-    { id: 204, name: "Sandeep Maheshwari", subs: "27.6M Subscribers", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80" },
-    { id: 205, name: "Flying Beast", subs: "7.8M Subscribers", image: "https://images.unsplash.com/photo-1586297135537-94bc9ba060aa?w=200&q=80" },
-    { id: 206, name: "Mumbiker Nikhil", subs: "4.1M Subscribers", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80" }
-  ];
+        trending = videos.map((item) => ({
+          id: item.videoId,
+          title: item.title || "Trending Video",
+          genre: item.author?.name || "Entertainment",
+          badge: "YOUTUBE", 
+          badgeColor: "bg-red-600", 
+          image: item.thumbnail || "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80"
+        }));
+      }
 
-  // In a real app, this would be fetched from Postgres, e.g.:
-  // const trendingVideos = await prisma.video.findMany({ ... })
+      const continueWatching = [
+        { id: "RIBXvLvRAVE", title: "Interstellar", time: "2h 49m left", progress: 30, image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&q=80" },
+        { id: "5PrUH-0opKk", title: "Money Heist S1 E5", time: "24m left", progress: 75, image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=600&q=80" },
+        { id: "D1mZpTVIBGA", title: "The Dark Knight", time: "1h 32m left", progress: 45, image: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=600&q=80" },
+        { id: "dQw4w9WgXcQ", title: "Inception", time: "1h 14m left", progress: 60, image: "https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600&q=80" },
+        { id: "jNQXAC9IVRw", title: "Game of Thrones S1 E3", time: "18m left", progress: 90, image: "https://images.unsplash.com/photo-1599839619722-39751411ea63?w=600&q=80" }
+      ];
 
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
+      const creators = [
+        { id: 201, name: "CarryMinati", subs: "32.4M Subscribers", image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80" },
+        { id: 202, name: "Tech Burner", subs: "11.2M Subscribers", image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&q=80" },
+        { id: 203, name: "BB Ki Vines", subs: "19M Subscribers", image: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&q=80" }
+      ];
 
-  res.json({
-    data: {
-      trending,
-      continueWatching,
-      creators
+      return { trending, continueWatching, creators };
+    });
+
+    res.json({ data: data });
+  } catch (error) {
+    console.error("Home feed fetch failed:", error);
+    // Absolute worst case fallback
+    res.json({
+      data: {
+        trending: [{ id: "RIBXvLvRAVE", title: "Kalki 2898 AD", genre: "Sci-Fi • 2024", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80" }],
+        continueWatching: [], creators: []
+      }
+    });
+  }
+});
+
+// Search Endpoint
+app.get('/api/videos/search', async (req, res) => {
+  const query = req.query.q as string || '';
+  if (!query) return res.json({ data: [] });
+
+  let results: any[] = [];
+  try {
+    // 1. Try local DB
+    const dbResults = await prisma.video.findMany({
+      where: { title: { contains: query, mode: 'insensitive' } },
+      take: 10,
+      include: { author: true }
+    });
+    if (dbResults.length > 0) {
+      results = dbResults.map(item => ({
+        id: item.id,
+        title: item.title,
+        genre: item.author.username || "Creator",
+        badge: "LOCAL",
+        badgeColor: "bg-green-600",
+        image: item.thumbnailUrl || "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80"
+      }));
     }
-  });
+  } catch (err) {
+    console.warn("DB search failed", err);
+  }
+
+  // 2. Fallback to YouTube
+  if (results.length === 0) {
+    try {
+      const searchResults = await ytSearch(query);
+      results = searchResults.videos.slice(0, 10).map(item => ({
+        id: item.videoId,
+        title: item.title,
+        genre: item.author?.name || "YouTube",
+        badge: "YOUTUBE",
+        badgeColor: "bg-red-600",
+        image: item.thumbnail
+      }));
+    } catch (err) {
+      console.warn("ytSearch failed", err);
+    }
+  }
+
+  res.json({ data: results });
+});
+
+// Video Details Endpoint
+app.get('/api/videos/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    // Check if it's a UUID (local DB)
+    if (id.length > 20 && id.includes('-')) {
+      const dbVideo = await prisma.video.findUnique({
+        where: { id },
+        include: { author: true }
+      });
+      if (dbVideo) {
+        return res.json({
+          data: {
+            id: dbVideo.id,
+            title: dbVideo.title,
+            description: dbVideo.description || "No description provided.",
+            url: dbVideo.url, // URL could be minio, local, etc
+            author: dbVideo.author.username,
+            views: dbVideo.views,
+            isLocal: true,
+            createdAt: dbVideo.createdAt
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.warn("DB fetch failed for id", id, err);
+  }
+
+  // Fallback to YouTube if not local or not found
+  try {
+    const ytVideo = await ytSearch({ videoId: id });
+    if (ytVideo) {
+      return res.json({
+        data: {
+          id: ytVideo.videoId,
+          title: ytVideo.title,
+          description: ytVideo.description,
+          url: `https://www.youtube.com/embed/${ytVideo.videoId}?autoplay=1`,
+          author: ytVideo.author?.name,
+          views: ytVideo.views,
+          isLocal: false,
+          createdAt: ytVideo.uploadDate || new Date()
+        }
+      });
+    }
+  } catch (err) {
+    console.warn("ytSearch fallback failed for id", id, err);
+  }
+
+  // If we reach here and the ID looks like a YouTube ID (length ~11), provide a hardcoded fallback
+  // so the player iframe can still load in the browser even if the Node server can't scrape YouTube metadata.
+  if (id.length === 11) {
+    return res.json({
+      data: {
+        id: id,
+        title: "YouTube Video",
+        description: "Metadata could not be fetched, but you can still watch the video.",
+        url: `https://www.youtube.com/embed/${id}?autoplay=1`,
+        author: "YouTube Creator",
+        views: 1000000,
+        isLocal: false,
+        createdAt: new Date()
+      }
+    });
+  }
+
+  res.status(404).json({ error: "Video not found" });
 });
 
 // Start the server
-const PORT = process.env.PORT || 8080;
+const PORT = parseInt(process.env.PORT || '8080', 10);
 app.listen(PORT, () => {
   console.log(`🚀 Nexora API Gateway running on port ${PORT}`);
 });

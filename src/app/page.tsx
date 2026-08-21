@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Play, Plus, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   const [data, setData] = useState<any>({ trending: [], continueWatching: [], creators: [] });
@@ -12,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
         const response = await fetch(`${API_URL}/api/videos/home`);
         if (response.ok) {
           const json = await response.json();
@@ -125,7 +126,7 @@ export default function Home() {
             ))
           ) : (
             data.trending.map((item: any) => (
-              <TrendingCard key={item.id} title={item.title} genre={item.genre} badge={item.badge} badgeColor={item.badgeColor} image={item.image} />
+              <TrendingCard key={item.id} id={item.id} title={item.title} genre={item.genre} badge={item.badge} badgeColor={item.badgeColor} image={item.image} />
             ))
           )}
         </div>
@@ -148,7 +149,7 @@ export default function Home() {
             ))
           ) : (
             data.continueWatching.map((item: any) => (
-              <ContinueCard key={item.id} title={item.title} time={item.time} progress={item.progress} image={item.image} />
+              <ContinueCard key={item.id} id={item.id} title={item.title} time={item.time} progress={item.progress} image={item.image} />
             ))
           )}
         </div>
@@ -207,58 +208,62 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function TrendingCard({ title, genre, badge, badgeColor = 'bg-yellow-600', image }: { title: string; genre: string; badge: string; badgeColor?: string; image: string }) {
+function TrendingCard({ id, title, genre, badge, badgeColor = 'bg-yellow-600', image }: { id: string | number; title: string; genre: string; badge: string; badgeColor?: string; image: string }) {
   return (
-    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="min-w-[185px] max-w-[185px] flex flex-col gap-2 group cursor-pointer">
-      <div className="relative aspect-[3/4] rounded-xl bg-[#14151D] border border-white/[0.04] overflow-hidden shadow-lg">
-        {image && <Image src={image} alt={title} fill className="object-cover" sizes="185px" />}
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        {/* Badge */}
-        <div className={`absolute top-2.5 right-2.5 ${badgeColor} text-white text-[9px] font-black px-1.5 py-[3px] rounded-[4px] uppercase leading-none tracking-wide`}>
-          {badge}
-        </div>
-        {/* Hover play button */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/30 backdrop-blur-[2px]">
-          <div className="w-11 h-11 rounded-full border-2 border-white/80 flex items-center justify-center bg-white/10 backdrop-blur-sm">
-            <Play className="w-5 h-5 fill-white ml-0.5" />
+    <Link href={`/watch/${id}`}>
+      <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="min-w-[185px] max-w-[185px] flex flex-col gap-2 group cursor-pointer">
+        <div className="relative aspect-[3/4] rounded-xl bg-[#14151D] border border-white/[0.04] overflow-hidden shadow-lg">
+          {image && <Image src={image} alt={title} fill className="object-cover" sizes="185px" />}
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          {/* Badge */}
+          <div className={`absolute top-2.5 right-2.5 ${badgeColor} text-white text-[9px] font-black px-1.5 py-[3px] rounded-[4px] uppercase leading-none tracking-wide`}>
+            {badge}
+          </div>
+          {/* Hover play button */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/30 backdrop-blur-[2px]">
+            <div className="w-11 h-11 rounded-full border-2 border-white/80 flex items-center justify-center bg-white/10 backdrop-blur-sm">
+              <Play className="w-5 h-5 fill-white ml-0.5" />
+            </div>
           </div>
         </div>
-      </div>
-      <div className="px-0.5">
-        <h3 className="font-semibold text-[13px] text-gray-100 group-hover:text-purple-300 transition-colors truncate">{title}</h3>
-        <p className="text-[11px] text-gray-500 font-medium">{genre}</p>
-      </div>
-    </motion.div>
+        <div className="px-0.5">
+          <h3 className="font-semibold text-[13px] text-gray-100 group-hover:text-purple-300 transition-colors truncate">{title}</h3>
+          <p className="text-[11px] text-gray-500 font-medium">{genre}</p>
+        </div>
+      </motion.div>
+    </Link>
   );
 }
 
-function ContinueCard({ title, time, progress, image }: { title: string; time: string; progress: number; image: string }) {
+function ContinueCard({ id, title, time, progress, image }: { id: string | number; title: string; time: string; progress: number; image: string }) {
   return (
-    <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }} className="min-w-[240px] max-w-[240px] relative rounded-xl border border-white/[0.06] overflow-hidden cursor-pointer group shadow-lg">
-      <div className="aspect-video bg-[#14151D] relative">
-        {image && <Image src={image} alt={title} fill className="object-cover" sizes="240px" />}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
-        {/* Play button */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Play className="w-4 h-4 fill-white ml-0.5" />
+    <Link href={`/watch/${id}`}>
+      <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }} className="min-w-[240px] max-w-[240px] relative rounded-xl border border-white/[0.06] overflow-hidden cursor-pointer group shadow-lg">
+        <div className="aspect-video bg-[#14151D] relative">
+          {image && <Image src={image} alt={title} fill className="object-cover" sizes="240px" />}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
+          {/* Play button */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Play className="w-4 h-4 fill-white ml-0.5" />
+            </div>
+          </div>
+          {/* Time left badge */}
+          <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-gray-200 font-medium">
+            {time}
           </div>
         </div>
-        {/* Time left badge */}
-        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-gray-200 font-medium">
-          {time}
+        {/* Progress + Title */}
+        <div className="bg-[#14151D] px-3 py-2.5 relative">
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gray-800">
+            <div className="h-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)] transition-all" style={{ width: `${progress}%` }}></div>
+          </div>
+          <h3 className="font-semibold text-[13px] text-gray-100 truncate">{title}</h3>
+          <p className="text-[11px] text-gray-500 mt-0.5">{time}</p>
         </div>
-      </div>
-      {/* Progress + Title */}
-      <div className="bg-[#14151D] px-3 py-2.5 relative">
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gray-800">
-          <div className="h-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)] transition-all" style={{ width: `${progress}%` }}></div>
-        </div>
-        <h3 className="font-semibold text-[13px] text-gray-100 truncate">{title}</h3>
-        <p className="text-[11px] text-gray-500 mt-0.5">{time}</p>
-      </div>
-    </motion.div>
+      </motion.div>
+    </Link>
   );
 }
 

@@ -104,7 +104,15 @@ export default function ShortsSwiper() {
                 
                 {/* Actual Video Player */}
                 <div className="absolute inset-0 bg-black flex flex-col items-center justify-center">
-                  {short.url.endsWith('.mp4') ? (
+                  {short.url.includes('youtube.com/embed') ? (
+                    <iframe
+                      src={`${short.url}?autoplay=${isPlaying ? 1 : 0}&loop=1&controls=0&mute=${!isPlaying ? 1 : 0}`}
+                      className="w-full h-full object-cover pointer-events-none scale-[1.5]"
+                      frameBorder="0"
+                      allow="autoplay; encrypted-media"
+                      allowFullScreen
+                    ></iframe>
+                  ) : short.url.endsWith('.mp4') ? (
                     <video
                       src={short.url}
                       className="w-full h-full object-cover"

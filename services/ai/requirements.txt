@@ -1,7 +1,1 @@
-fastapi==0.109.2
-uvicorn[standard]==0.27.1
-pydantic==2.6.1
-# Machine learning libraries would go here
-# torch
-# transformers
-# sentence-transformers
+Flask==3.0.2

@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import MobileNav from "@/components/MobileNav";
+import { PlayerProvider } from "@/context/PlayerContext";
+import GlobalPlayer from "@/components/GlobalPlayer";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,14 +26,17 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
       <body className="min-h-full flex font-[family-name:var(--font-inter)] text-white bg-[#0A0B10]">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto flex flex-col min-h-[100dvh] pb-16 md:pb-0">
-          <Header />
-          <div className="flex-1">
-            {children}
-          </div>
-          <MobileNav />
-        </main>
+        <PlayerProvider>
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto flex flex-col min-h-[100dvh] pb-16 md:pb-0">
+            <Header />
+            <div className="flex-1">
+              {children}
+            </div>
+            <MobileNav />
+          </main>
+          <GlobalPlayer />
+        </PlayerProvider>
       </body>
     </html>
   );
