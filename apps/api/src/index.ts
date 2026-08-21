@@ -62,6 +62,20 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', service: 'Nexora API (Node.js)' });
 });
 
+// Reusable Fallback Data (prevents empty screens during YouTube rate limits)
+const fallbackVideos = [
+  { id: "RIBXvLvRAVE", title: "Kalki 2898 AD - Official Trailer", genre: "Movie • 2024", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=720&q=80" },
+  { id: "agMZc3TsOBM", title: "Latest Hit Song 2024 - Official Music Video", genre: "Music • 2024", badge: "NEW", badgeColor: "bg-red-600", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=720&q=80" },
+  { id: "5PrUH-0opKk", title: "Money Heist: Berlin - Episode 1", genre: "Series • Netflix", badge: "HD", badgeColor: "bg-purple-600", image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=720&q=80" },
+  { id: "8jsqPKuTkrs", title: "Top 50 Pop Hits of the Week", genre: "Music Playlist", badge: "TRENDING", badgeColor: "bg-blue-600", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=720&q=80" },
+  { id: "D1mZpTVIBGA", title: "The Dark Knight - 4K Remaster", genre: "Movie • Action", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=720&q=80" },
+  { id: "BU6_n7y7AHg", title: "Relaxing Lofi Hip Hop Radio", genre: "Music • Live", badge: "LIVE", badgeColor: "bg-red-600", image: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=720&q=80" },
+  { id: "k3AqQzW3cGI", title: "Top 10 Upcoming Movies 2025", genre: "Entertainment", badge: "HD", badgeColor: "bg-gray-600", image: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=720&q=80" },
+  { id: "n_VrRuNkbrE", title: "Chill Vibes - Acoustic Covers", genre: "Music", badge: "HD", badgeColor: "bg-blue-600", image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=720&q=80" },
+  { id: "dQw4w9WgXcQ", title: "Never Gonna Give You Up", genre: "Music • Classic", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=720&q=80" },
+  { id: "jNQXAC9IVRw", title: "Me at the zoo", genre: "Entertainment", badge: "HD", badgeColor: "bg-gray-600", image: "https://images.unsplash.com/photo-1580234797602-22c3734a625e?w=720&q=80" }
+];
+
 // Generate MinIO Presigned URL for direct client uploads
 app.get('/api/videos/upload-url', async (req, res) => {
   try {
@@ -253,19 +267,6 @@ app.get('/api/videos/home', async (req, res) => {
   } catch (error) {
     console.error("Home feed fetch failed:", error);
     // Comprehensive fallback data if YouTube blocks IP (302)
-    const fallbackTrending = [
-      { id: "RIBXvLvRAVE", title: "Kalki 2898 AD - Official Trailer", genre: "Movie • 2024", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=720&q=80" },
-      { id: "agMZc3TsOBM", title: "Latest Hit Song 2024 - Official Music Video", genre: "Music • 2024", badge: "NEW", badgeColor: "bg-red-600", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=720&q=80" },
-      { id: "5PrUH-0opKk", title: "Money Heist: Berlin - Episode 1", genre: "Series • Netflix", badge: "HD", badgeColor: "bg-purple-600", image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=720&q=80" },
-      { id: "8jsqPKuTkrs", title: "Top 50 Pop Hits of the Week", genre: "Music Playlist", badge: "TRENDING", badgeColor: "bg-blue-600", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=720&q=80" },
-      { id: "D1mZpTVIBGA", title: "The Dark Knight - 4K Remaster", genre: "Movie • Action", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=720&q=80" },
-      { id: "BU6_n7y7AHg", title: "Relaxing Lofi Hip Hop Radio", genre: "Music • Live", badge: "LIVE", badgeColor: "bg-red-600", image: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=720&q=80" },
-      { id: "k3AqQzW3cGI", title: "Top 10 Upcoming Movies 2025", genre: "Entertainment", badge: "HD", badgeColor: "bg-gray-600", image: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=720&q=80" },
-      { id: "n_VrRuNkbrE", title: "Chill Vibes - Acoustic Covers", genre: "Music", badge: "HD", badgeColor: "bg-blue-600", image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=720&q=80" },
-      { id: "dQw4w9WgXcQ", title: "Never Gonna Give You Up", genre: "Music • Classic", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=720&q=80" },
-      { id: "jNQXAC9IVRw", title: "Me at the zoo", genre: "Entertainment", badge: "HD", badgeColor: "bg-gray-600", image: "https://images.unsplash.com/photo-1580234797602-22c3734a625e?w=720&q=80" }
-    ];
-
     const fallbackContinueWatching = [
       { id: "RIBXvLvRAVE", title: "Interstellar", time: "2h 49m left", progress: 30, image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=720&q=80" },
       { id: "5PrUH-0opKk", title: "Money Heist S1 E5", time: "24m left", progress: 75, image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=720&q=80" },
@@ -283,7 +284,7 @@ app.get('/api/videos/home', async (req, res) => {
 
     res.json({
       data: {
-        trending: fallbackTrending,
+        trending: fallbackVideos,
         continueWatching: fallbackContinueWatching, 
         creators: fallbackCreators
       }
@@ -331,7 +332,13 @@ app.get('/api/videos/search', async (req, res) => {
         image: item.thumbnail
       }));
     } catch (err) {
-      console.warn("ytSearch failed", err);
+      console.warn("ytSearch failed for search endpoint, using fallback data", err);
+      // Precise code: DRY fallback data to prevent empty states
+      results = fallbackVideos.filter(v => 
+        v.title.toLowerCase().includes(query.toLowerCase()) || 
+        v.genre.toLowerCase().includes(query.toLowerCase())
+      );
+      if (results.length === 0) results = fallbackVideos; // Give them something if no exact match
     }
   }
 
@@ -387,7 +394,8 @@ app.get('/api/videos/:id/related', async (req, res) => {
     });
     res.json({ data });
   } catch (err) {
-    res.json({ data: [] });
+    console.warn("Related videos fetch failed, returning fallback data");
+    res.json({ data: fallbackVideos.filter(v => v.id !== id).slice(0, 12) });
   }
 });
 
