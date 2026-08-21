@@ -44,13 +44,15 @@ function SearchResults() {
       
       {loading ? (
         <div className="flex flex-wrap gap-4">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="min-w-[185px] w-[185px] flex flex-col gap-2.5">
-              <div className="relative aspect-[3/4] rounded-xl bg-white/[0.04] animate-pulse overflow-hidden">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="min-w-[280px] w-[280px] sm:w-[320px] sm:min-w-[320px] flex flex-col gap-3">
+              <div className="relative aspect-video rounded-xl bg-white/[0.04] animate-pulse overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
               </div>
-              <div className="h-3.5 bg-white/[0.06] rounded animate-pulse w-[80%]" />
-              <div className="h-3 bg-white/[0.04] rounded animate-pulse w-[55%]" />
+              <div className="px-1 flex flex-col gap-2">
+                <div className="h-4 bg-white/[0.06] rounded animate-pulse w-[90%]" />
+                <div className="h-3 bg-white/[0.04] rounded animate-pulse w-[60%]" />
+              </div>
             </div>
           ))}
         </div>
@@ -78,10 +80,10 @@ function SearchResults() {
                 }}
                 whileHover={{ y: -4 }} 
                 transition={{ duration: 0.2 }} 
-                className="min-w-[185px] w-[185px] flex flex-col gap-2 group cursor-pointer"
+                className={`flex flex-col gap-2 group cursor-pointer ${item.badge === 'YOUTUBE' ? 'min-w-[280px] w-[280px] sm:w-[320px] sm:min-w-[320px]' : 'min-w-[185px] w-[185px]'}`}
               >
-                <div className="relative aspect-[3/4] rounded-xl bg-[#14151D] border border-white/[0.04] overflow-hidden shadow-lg">
-                  {item.image && <Image src={item.image.replace('w=600', 'w=720')} alt={item.title} fill className="object-cover" sizes="185px" />}
+                <div className={`relative ${item.badge === 'YOUTUBE' ? 'aspect-video' : 'aspect-[3/4]'} rounded-xl bg-[#14151D] border border-white/[0.04] overflow-hidden shadow-lg`}>
+                  {item.image && <Image src={item.image.replace('w=600', 'w=720')} alt={item.title} fill className="object-cover" sizes={item.badge === 'YOUTUBE' ? '320px' : '185px'} />}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className={`absolute top-2.5 right-2.5 ${item.badgeColor || 'bg-blue-600'} text-white text-[9px] font-black px-1.5 py-[3px] rounded-[4px] uppercase leading-none tracking-wide`}>
                     {item.badge}
@@ -92,9 +94,9 @@ function SearchResults() {
                     </div>
                   </div>
                 </div>
-                <div className="px-0.5">
-                  <h3 className="font-semibold text-[13px] text-gray-100 group-hover:text-purple-300 transition-colors truncate">{item.title}</h3>
-                  <p className="text-[11px] text-gray-500 font-medium">{item.genre}</p>
+                <div className="px-0.5 mt-1">
+                  <h3 className={`font-semibold text-gray-100 group-hover:text-purple-300 transition-colors ${item.badge === 'YOUTUBE' ? 'text-[15px] line-clamp-2 leading-snug' : 'text-[13px] truncate'}`}>{item.title}</h3>
+                  <p className="text-[12px] text-gray-400 font-medium mt-0.5">{item.genre}</p>
                 </div>
               </motion.div>
             </Link>
