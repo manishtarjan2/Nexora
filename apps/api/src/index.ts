@@ -223,11 +223,40 @@ app.get('/api/videos/home', async (req, res) => {
     res.json({ data: data });
   } catch (error) {
     console.error("Home feed fetch failed:", error);
-    // Absolute worst case fallback
+    // Comprehensive fallback data if YouTube blocks IP (302)
+    const fallbackTrending = [
+      { id: "RIBXvLvRAVE", title: "Kalki 2898 AD - Official Trailer", genre: "Movie • 2024", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=720&q=80" },
+      { id: "agMZc3TsOBM", title: "Latest Hit Song 2024 - Official Music Video", genre: "Music • 2024", badge: "NEW", badgeColor: "bg-red-600", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=720&q=80" },
+      { id: "5PrUH-0opKk", title: "Money Heist: Berlin - Episode 1", genre: "Series • Netflix", badge: "HD", badgeColor: "bg-purple-600", image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=720&q=80" },
+      { id: "8jsqPKuTkrs", title: "Top 50 Pop Hits of the Week", genre: "Music Playlist", badge: "TRENDING", badgeColor: "bg-blue-600", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=720&q=80" },
+      { id: "D1mZpTVIBGA", title: "The Dark Knight - 4K Remaster", genre: "Movie • Action", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=720&q=80" },
+      { id: "BU6_n7y7AHg", title: "Relaxing Lofi Hip Hop Radio", genre: "Music • Live", badge: "LIVE", badgeColor: "bg-red-600", image: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=720&q=80" },
+      { id: "k3AqQzW3cGI", title: "Top 10 Upcoming Movies 2025", genre: "Entertainment", badge: "HD", badgeColor: "bg-gray-600", image: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=720&q=80" },
+      { id: "n_VrRuNkbrE", title: "Chill Vibes - Acoustic Covers", genre: "Music", badge: "HD", badgeColor: "bg-blue-600", image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=720&q=80" },
+      { id: "dQw4w9WgXcQ", title: "Never Gonna Give You Up", genre: "Music • Classic", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=720&q=80" },
+      { id: "jNQXAC9IVRw", title: "Me at the zoo", genre: "Entertainment", badge: "HD", badgeColor: "bg-gray-600", image: "https://images.unsplash.com/photo-1580234797602-22c3734a625e?w=720&q=80" }
+    ];
+
+    const fallbackContinueWatching = [
+      { id: "RIBXvLvRAVE", title: "Interstellar", time: "2h 49m left", progress: 30, image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=720&q=80" },
+      { id: "5PrUH-0opKk", title: "Money Heist S1 E5", time: "24m left", progress: 75, image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=720&q=80" },
+      { id: "D1mZpTVIBGA", title: "The Dark Knight", time: "1h 32m left", progress: 45, image: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=720&q=80" },
+      { id: "dQw4w9WgXcQ", title: "Inception", time: "1h 14m left", progress: 60, image: "https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=720&q=80" }
+    ];
+
+    const fallbackCreators = [
+      { id: 201, name: "CarryMinati", subs: "32.4M Subscribers", image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80" },
+      { id: 202, name: "Tech Burner", subs: "11.2M Subscribers", image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&q=80" },
+      { id: 203, name: "BB Ki Vines", subs: "19M Subscribers", image: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&q=80" },
+      { id: 204, name: "MrBeast", subs: "200M Subscribers", image: "https://images.unsplash.com/photo-1600486913747-55e5470d6f40?w=200&q=80" },
+      { id: 205, name: "T-Series", subs: "250M Subscribers", image: "https://images.unsplash.com/photo-1516280440502-a2a3e0b8a1c9?w=200&q=80" }
+    ];
+
     res.json({
       data: {
-        trending: [{ id: "RIBXvLvRAVE", title: "Kalki 2898 AD", genre: "Sci-Fi • 2024", badge: "4K", badgeColor: "bg-yellow-600", image: "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=600&q=80" }],
-        continueWatching: [], creators: []
+        trending: fallbackTrending,
+        continueWatching: fallbackContinueWatching, 
+        creators: fallbackCreators
       }
     });
   }

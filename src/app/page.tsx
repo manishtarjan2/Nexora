@@ -114,11 +114,11 @@ export default function Home() {
 
       {/* ══════════════ TRENDING NOW ══════════════ */}
       <Section title="Trending Now">
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-4">
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="min-w-[200px] flex flex-col gap-2.5">
-                <div className="relative aspect-[3/4] rounded-xl bg-white/[0.04] animate-pulse overflow-hidden">
+            Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="w-full flex flex-col gap-2.5">
+                <div className="relative aspect-video rounded-xl bg-white/[0.04] animate-pulse overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
                 </div>
                 <div className="h-3.5 bg-white/[0.06] rounded animate-pulse w-[80%]" />
@@ -135,10 +135,10 @@ export default function Home() {
 
       {/* ══════════════ CONTINUE WATCHING ══════════════ */}
       <Section title="Continue Watching">
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
           {loading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="min-w-[240px] rounded-xl border border-white/[0.04] bg-[#14151D] overflow-hidden flex flex-col">
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="w-full rounded-xl border border-white/[0.04] bg-[#14151D] overflow-hidden flex flex-col">
                 <div className="aspect-video bg-white/[0.04] animate-pulse relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
                 </div>
@@ -192,18 +192,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-[17px] font-bold text-white">{title}</h2>
-        <button className="flex items-center gap-1 text-[12px] text-purple-400 font-semibold hover:text-purple-300 transition-colors">
-          View All <ChevronRight className="w-3.5 h-3.5" />
-        </button>
       </div>
-      <div className="relative group">
+      <div className="relative">
         {children}
-        {/* Right scroll fade + arrow */}
-        <div className="absolute right-0 top-0 bottom-4 w-20 bg-gradient-to-l from-[#0A0B10] via-[#0A0B10]/70 to-transparent pointer-events-none flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button className="w-9 h-9 rounded-full bg-black/70 border border-white/15 text-white flex items-center justify-center hover:bg-black/90 hover:scale-110 transition-all pointer-events-auto backdrop-blur-md shadow-2xl mr-1">
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -212,9 +203,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function TrendingCard({ id, title, genre, badge, badgeColor = 'bg-yellow-600', image }: { id: string | number; title: string; genre: string; badge: string; badgeColor?: string; image: string }) {
   return (
     <Link href={`/watch/${id}`}>
-      <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="min-w-[185px] max-w-[185px] flex flex-col gap-2 group cursor-pointer">
-        <div className="relative aspect-[3/4] rounded-xl bg-[#14151D] border border-white/[0.04] overflow-hidden shadow-lg">
-          {image && <Image src={image} alt={title} fill className="object-cover" sizes="185px" />}
+      <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="w-full flex flex-col gap-2 group cursor-pointer">
+        <div className="relative aspect-video rounded-xl bg-[#14151D] border border-white/[0.04] overflow-hidden shadow-lg">
+          {image && <Image src={image} alt={title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" />}
           {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
           {/* Badge */}
@@ -240,9 +231,9 @@ function TrendingCard({ id, title, genre, badge, badgeColor = 'bg-yellow-600', i
 function ContinueCard({ id, title, time, progress, image }: { id: string | number; title: string; time: string; progress: number; image: string }) {
   return (
     <Link href={`/watch/${id}`}>
-      <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }} className="min-w-[240px] max-w-[240px] relative rounded-xl border border-white/[0.06] overflow-hidden cursor-pointer group shadow-lg">
+      <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }} className="w-full relative rounded-xl border border-white/[0.06] overflow-hidden cursor-pointer group shadow-lg">
         <div className="aspect-video bg-[#14151D] relative">
-          {image && <Image src={image} alt={title} fill className="object-cover" sizes="240px" />}
+          {image && <Image src={image} alt={title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" />}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
           {/* Play button */}
           <div className="absolute inset-0 flex items-center justify-center">

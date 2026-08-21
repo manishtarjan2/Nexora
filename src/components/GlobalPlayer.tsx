@@ -84,8 +84,12 @@ export default function GlobalPlayer() {
           />
         )}
         
-        {isMinimized && !isDragging && (
-          <div className="absolute inset-0 z-10" onClick={() => router.push(`/watch/${activeVideo.id}`)} />
+        {isMinimized && (
+          <div className="absolute inset-0 z-10" onClick={() => {
+            if (!isDragging) {
+              router.push(`/watch/${activeVideo.id}`);
+            }
+          }} />
         )}
       </div>
     </motion.div>
