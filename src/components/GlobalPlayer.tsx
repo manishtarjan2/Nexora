@@ -19,13 +19,18 @@ export default function GlobalPlayer() {
       const placeholder = document.getElementById('watch-player-placeholder');
       if (placeholder) {
         const r = placeholder.getBoundingClientRect();
-        setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+        setRect({ 
+          top: r.top + window.scrollY, 
+          left: r.left + window.scrollX, 
+          width: r.width, 
+          height: r.height 
+        });
       }
     };
 
-    // Initial and periodic update to handle layout shifts
+    // Initial and periodic update to handle layout shifts (like theater mode toggling)
     updateRect();
-    const interval = setInterval(updateRect, 100);
+    const interval = setInterval(updateRect, 250);
     window.addEventListener('resize', updateRect);
     
     return () => {
@@ -38,8 +43,8 @@ export default function GlobalPlayer() {
 
   // Determine styles based on state
   const style: React.CSSProperties = isMinimized 
-    ? { bottom: '1rem', right: '1rem', width: '350px', height: '197px', zIndex: 9999 }
-    : { top: rect.top, left: rect.left, width: rect.width, height: rect.height, zIndex: 40 };
+    ? { position: 'fixed', bottom: '1rem', right: '1rem', width: '350px', height: '197px', zIndex: 9999, top: 'auto', left: 'auto' }
+    : { position: 'absolute', top: rect.top, left: rect.left, width: rect.width, height: rect.height, zIndex: 40 };
 
   return (
     <motion.div 
@@ -47,7 +52,7 @@ export default function GlobalPlayer() {
       dragMomentum={false}
       onDragStart={() => setIsDragging(true)}
       onDragEnd={() => setIsDragging(false)}
-      className={`fixed bg-black overflow-hidden ${!isDragging ? 'transition-all duration-500' : ''} ${isMinimized ? 'rounded-xl shadow-2xl border border-white/[0.1] cursor-move' : 'rounded-xl'}`}
+      className={`bg-black overflow-hidden ${(!isDragging && isMinimized) ? 'transition-all duration-500' : ''} ${isMinimized ? 'rounded-xl shadow-2xl border border-white/[0.1] cursor-move' : 'rounded-xl'}`}
       style={style}
     >
       {isMinimized && (
