@@ -15,6 +15,9 @@ export default function WatchPage() {
   const router = useRouter();
   const { activeVideo, setActiveVideo, setMinimized } = usePlayer();
   
+  const [theaterMode, setTheaterMode] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
+
   const [loading, setLoading] = useState(!activeVideo || activeVideo.id !== id);
   const [error, setError] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -111,9 +114,6 @@ export default function WatchPage() {
     hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 24 } }
   };
-
-  const [theaterMode, setTheaterMode] = useState(false);
-  const [descExpanded, setDescExpanded] = useState(false);
 
   return (
     <div className="w-full min-h-[100dvh] bg-[#0A0B10] text-white flex flex-col items-center">
