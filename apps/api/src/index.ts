@@ -8,6 +8,9 @@ import dotenv from 'dotenv';
 import { google } from 'googleapis';
 import ytSearch from 'yt-search';
 
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
 dotenv.config();
 
 const connectionString = process.env.DATABASE_URL || "postgresql://user:password@localhost:5432/nexora_db?schema=public";
@@ -16,7 +19,33 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 const app = express();
-app.use(cors());
+
+// Security Middleware
+app.use(helmet());
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+
+// Strict CORS
+const allowedOrigins = ['http://localhost:3000', process.env.FRONTEND_URL || 'https://nexora-education-nine.vercel.app'];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 
 // MinIO Client Setup
