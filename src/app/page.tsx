@@ -33,7 +33,7 @@ export default function Home() {
   const categories = ['For You', 'Trending', 'Movies', 'Web Series', 'Live', 'Music', 'Gaming', 'News'];
 
   return (
-    <div className="w-full text-white px-6 pt-4 pb-10">
+    <div className="w-full text-white px-2 md:px-4 pt-4 pb-10">
 
       {/* ══════════════ HERO BANNER ══════════════ */}
       <div className="relative w-full h-[420px] rounded-2xl overflow-hidden mb-8 border border-white/[0.04]">
